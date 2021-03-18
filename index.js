@@ -3,6 +3,15 @@
 const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51HbGI5ACVdhg5BcJbXdDKlwlfnILAHB7TtPLtxpXXPvsfoOW8SlyN9jmnVINZxLJ9HR8bcNF22IM1K2iLb8hKvIv00FHPqMf34');
 
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
+//initialize admin SDK using serciceAcountKey
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://hello-e3767.firebaseio.com"
+});
+const db = admin.firestore();
+
 const cool = require('cool-ascii-faces');
 const express = require('express')
 const path = require('path')
@@ -202,5 +211,32 @@ app.post('/createPaymentIntent', async(req, res, next) => {
     return res.send(response)
   }
 });
+
+app.post('/sendPushNotification', async(req, res, next) => {
+  var data = req.body
+  var token = data.token
+  var title = data.title
+  var body = data.body
+
+  var payload = {
+    notification: {
+      title: title,
+      body: body
+    }
+  };
+
+  //admin.messaging().sendToTopic("notifications", payload)
+  admin.messaging().sendToDevice(token, payload)
+  .then(function(response) {
+    console.log("Successfully sent push notification:", response);
+    return res.send(response)
+  })
+  .catch(function(error) {
+    console.log("Error sending push notification:", error);
+    return next(err)
+  });
+
+});
+
 
 // module.exports = router;
