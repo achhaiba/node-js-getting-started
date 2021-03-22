@@ -86,8 +86,10 @@ app.post('/createStripeAccountLink', async(req, res, next) => {
   var response = {}
   stripe.accountLinks.create({
     account: accountID,
-    refresh_url: 'https://subaito.com/app/connect?onboard=reauth',
-    return_url: 'https://subaito.com/app/connect?onboard=return',
+    refresh_url: 'https://subaito.com/wallet-ready/',
+    return_url: 'https://subaito.com/wallet-ready/',
+    //refresh_url: 'https://subaito.com/app/connect?onboard=reauth',
+    //return_url: 'https://subaito.com/app/connect?onboard=return',
     //refresh_url: 'subaito://app/connect?onboard=reauth',
     //return_url: 'subaito://app/connect?onboard=return',
     type: 'account_onboarding',
@@ -233,11 +235,19 @@ app.post('/createPaymentIntent', async(req, res, next) => {
 
 app.post('/createInvoice', async(req, res, next) => {
   var data = req.body
+  var currency = data.currency
+  var amount = data.amount
   var feeAmount = data.feeAmount
   var customerId = data.customerId
   var connectedAccountId = data.connectedAccountId
   var response = {}
   try {
+    const invoiceItem = await stripe.invoiceItems.create({
+      currency: currency,
+      amount: amount,
+      customer: customerId,
+    });
+
     const invoice = await stripe.invoices.create({
       on_behalf_of: connectedAccountId,
       application_fee_amount: feeAmount,
@@ -245,8 +255,10 @@ app.post('/createInvoice', async(req, res, next) => {
       transfer_data: {
         destination: connectedAccountId,
       },
+      auto_advance: true, // auto-finalize this draft after ~1 hour
     });
     
+    console.log(invoiceItem)
     console.log(invoice)
     response.body = {success: invoice.id}
     return res.send(response)

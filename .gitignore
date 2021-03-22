@@ -14,3 +14,4 @@ docker-compose.yml
 # Custom
 serviceAccountKey.json
 serviceAccountKey.js
+.env
