@@ -4,11 +4,30 @@ const Stripe = require('stripe');
 const stripe = Stripe('sk_test_51HbGI5ACVdhg5BcJbXdDKlwlfnILAHB7TtPLtxpXXPvsfoOW8SlyN9jmnVINZxLJ9HR8bcNF22IM1K2iLb8hKvIv00FHPqMf34');
 
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+//const serviceAccount = require('./serviceAccountKey.json');
+//const config = require('./serviceAccountKey.js').config;
+//const serviceAccount = JSON.parse(JSON.stringify(config));
+//var serviceAccount = process.env.GSA_CREDENTIALS;
+//console.log(`Service account = ${serviceAccount}`);
+
+//console.log(`process.env = ${process.env}`);
+
 //initialize admin SDK using serciceAcountKey
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://hello-e3767.firebaseio.com"
+  //credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    "type": "service_account",
+    "project_id": process.env.FIREBASE_PROJECT_ID,
+    "private_key_id": "1658bbd62c3c35fb17b095c864fd471b3b32a3e8",
+    "private_key": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    "client_email": process.env.FIREBASE_CLIENT_EMAIL,
+    "client_id": "116982750101067232743",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-v1pr2%40hello-e3767.iam.gserviceaccount.com"
+  }),
+  databaseURL: process.env.FIREBASE_DATABASE_URL
 });
 const db = admin.firestore();
 
@@ -188,7 +207,7 @@ app.post('/createPaymentIntent', async(req, res, next) => {
   var currency = data.currency
   var feeAmount = data.feeAmount
   var customerId = data.customerId
-  var connectedStripeAccountId = data.connectedStripeAccountId
+  var connectedAccountId = data.connectedAccountId
   var response = {}
   try {
     const paymentIntent = await stripe.paymentIntents.create({
@@ -198,12 +217,38 @@ app.post('/createPaymentIntent', async(req, res, next) => {
       application_fee_amount: feeAmount,
       customer: customerId,
       transfer_data: {
-        destination: connectedStripeAccountId,
+        destination: connectedAccountId,
       },
     });
     
     console.log(paymentIntent)
     response.body = {success: paymentIntent.client_secret}
+    return res.send(response)
+  } catch (err) {
+    console.log(err)
+    response.body = {failure: err}
+    return res.send(response)
+  }
+});
+
+app.post('/createInvoice', async(req, res, next) => {
+  var data = req.body
+  var feeAmount = data.feeAmount
+  var customerId = data.customerId
+  var connectedAccountId = data.connectedAccountId
+  var response = {}
+  try {
+    const invoice = await stripe.invoices.create({
+      on_behalf_of: connectedAccountId,
+      application_fee_amount: feeAmount,
+      customer: customerId,
+      transfer_data: {
+        destination: connectedAccountId,
+      },
+    });
+    
+    console.log(invoice)
+    response.body = {success: invoice.id}
     return res.send(response)
   } catch (err) {
     console.log(err)
