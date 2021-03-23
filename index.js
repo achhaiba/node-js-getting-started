@@ -236,7 +236,9 @@ app.post('/createPaymentIntent', async(req, res, next) => {
 app.post('/createInvoice', async(req, res, next) => {
   var data = req.body
   var currency = data.currency
-  var amount = data.amount
+  var description = data.description
+  var quantity = data.quantity
+  var unit_amount = data.unit_amount
   var feeAmount = data.feeAmount
   var customerId = data.customerId
   var connectedAccountId = data.connectedAccountId
@@ -244,7 +246,9 @@ app.post('/createInvoice', async(req, res, next) => {
   try {
     const invoiceItem = await stripe.invoiceItems.create({
       currency: currency,
-      amount: amount,
+      description: description,
+      quantity: quantity,
+      unit_amount: unit_amount,
       customer: customerId,
     });
 
@@ -256,6 +260,7 @@ app.post('/createInvoice', async(req, res, next) => {
         destination: connectedAccountId,
       },
       auto_advance: true, // auto-finalize this draft after ~1 hour
+      collection_method: 'charge_automatically',
     });
     
     console.log(invoiceItem)
@@ -267,6 +272,23 @@ app.post('/createInvoice', async(req, res, next) => {
     response.body = {failure: err}
     return res.send(response)
   }
+});
+
+app.post('/payInvoice', async(req, res, next) => {
+  var data = req.body
+  var invoiceId = data.invoiceId
+  var payment_method = data.paymentMethod
+
+  stripe.invoices.pay(invoiceId, payment_method, function(err, invoice) {
+    // asynchronously called
+    if (err) {
+      console.log("Couldn't pay invoice: " + err)
+      return res.send(err)
+    }
+    console.log(invoice.id)
+    response.body = {success: invoice.id}
+    return res.send(response)
+    });
 });
 
 app.post('/sendPushNotification', async(req, res, next) => {
