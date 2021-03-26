@@ -210,6 +210,8 @@ app.post('/createPaymentIntent', async(req, res, next) => {
   var feeAmount = data.feeAmount
   var customerId = data.customerId
   var connectedAccountId = data.connectedAccountId
+  var receipt_email = data.receipt_email
+  var description = data.description
   var response = {}
   try {
     const paymentIntent = await stripe.paymentIntents.create({
@@ -221,6 +223,8 @@ app.post('/createPaymentIntent', async(req, res, next) => {
       transfer_data: {
         destination: connectedAccountId,
       },
+      receipt_email: receipt_email,
+      description: description,
     });
     
     console.log(paymentIntent)
