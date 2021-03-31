@@ -309,7 +309,7 @@ app.post('/sendPushNotification', async(req, res, next) => {
     },
   };
 
-  if (!customData) {
+  if (customData) {
     console.log("customData:", customData);
     payload[data] = customData
   }
