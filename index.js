@@ -306,9 +306,13 @@ app.post('/sendPushNotification', async(req, res, next) => {
     notification: {
       title: title,
       body: body
-    },
-    data: customData,
+    }
   };
+
+  if (!customData) {
+    console.log("customData:", customData);
+    payload.data = customData
+  }
 
   //admin.messaging().sendToTopic("notifications", payload)
   admin.messaging().sendToDevice(token, payload)
