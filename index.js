@@ -300,12 +300,14 @@ app.post('/sendPushNotification', async(req, res, next) => {
   var token = data.token
   var title = data.title
   var body = data.body
+  var customData = data.custom_data
 
   var payload = {
     notification: {
       title: title,
       body: body
-    }
+    },
+    data: customData,
   };
 
   //admin.messaging().sendToTopic("notifications", payload)
