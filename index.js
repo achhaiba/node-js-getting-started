@@ -1,7 +1,7 @@
 // Set your secret key. Remember to switch to your live secret key in production!
 // See your keys here: https://dashboard.stripe.com/account/apikeys
 const Stripe = require('stripe');
-const stripe = Stripe('sk_test_51HbGI5ACVdhg5BcJbXdDKlwlfnILAHB7TtPLtxpXXPvsfoOW8SlyN9jmnVINZxLJ9HR8bcNF22IM1K2iLb8hKvIv00FHPqMf34');
+const stripe = Stripe(process.env.STRIPE_API_KEY);
 
 const admin = require('firebase-admin');
 //const serviceAccount = require('./serviceAccountKey.json');
@@ -18,14 +18,14 @@ admin.initializeApp({
   credential: admin.credential.cert({
     "type": "service_account",
     "project_id": process.env.FIREBASE_PROJECT_ID,
-    "private_key_id": "1658bbd62c3c35fb17b095c864fd471b3b32a3e8",
+    "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
     "private_key": process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     "client_email": process.env.FIREBASE_CLIENT_EMAIL,
-    "client_id": "116982750101067232743",
+    "client_id": process.env.FIREBASE_CLIENT_ID,
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-v1pr2%40hello-e3767.iam.gserviceaccount.com"
+    "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL
   }),
   databaseURL: process.env.FIREBASE_DATABASE_URL
 });
